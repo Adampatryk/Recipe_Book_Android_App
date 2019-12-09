@@ -24,11 +24,8 @@ public class RecipeBookProvider extends ContentProvider {
 	static {
 		uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "recipe", 1);
-		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "recipe/#", 2);
-		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "ingredient", 3);
-		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "ingredient/#", 4);
-		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "recipe_with_ingredients/#", 5);
-		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "*", 7);
+		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "ingredients", 3);
+		uriMatcher.addURI(RecipeBookProviderContract.AUTHORITY, "recipe_with_ingredients", 5);
 	}
 
 	@Override
@@ -45,25 +42,16 @@ public class RecipeBookProvider extends ContentProvider {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 
 		switch(uriMatcher.match(uri)) {
-			case 2:
-				selection = "_id = " + uri.getLastPathSegment();
 			case 1:
 				return db.query("recipe", projection, selection, selectionArgs, null, null, sortOrder);
-			case 4:
-				selection = "_id = " + uri.getLastPathSegment();
 			case 3:
 				return db.query("ingredient", projection, selection, selectionArgs, null, null, sortOrder);
 			case 5:
-				String[] recipeId = {uri.getLastPathSegment()};
-				return db.rawQuery("select r._id as recipe_id, r.title, r.instructions, r.rating, ri.ingredient_id, i.ingredient_name "+
-                "from recipe r "+
+				return db.rawQuery("select r._id as recipe_id, r.title, r.instructions, r.rating, ri.ingredient_id, i.ingredient_name "+ //Change in future
+                		"from recipe r "+
                         "join recipe_ingredient ri on (r._id = ri.recipe_id)"+
                         "join ingredient i on (ri.ingredient_id = i._id) where r._id == ?",
-                recipeId);
-
-			case 7:
-				String q7 = "SELECT * FROM people UNION SELECT * FROM animals";
-				return db.rawQuery(q7, selectionArgs);
+						selectionArgs);
 			default:
 				return null;
 		}
@@ -75,6 +63,8 @@ public class RecipeBookProvider extends ContentProvider {
 		Log.d("g53mdp", "RecipeBookProvider update");
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 
+		db.update("recipe", contentValues, s, strings);
+		getContext().getContentResolver().notifyChange(uri, null);
 
 		return 0;
 	}

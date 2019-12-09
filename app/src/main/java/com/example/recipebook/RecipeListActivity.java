@@ -77,46 +77,6 @@ public class RecipeListActivity extends AppCompatActivity {
 
         queryRecipes();
 
-//        String[] columns = new String[] {
-//                "_id",
-//                "title",
-//                "rating"
-//        };
-//        int[] to = new int[] {
-//                R.id._id,
-//                R.id.rowRecipeTitleText,
-//                R.id.rowRecipeRatingText,
-//        };
-
-//        Log.d("g53mdp", "RecipeListActivity onCreate dbHelper: " + dbHelper.toString());
-//        c = dbHelper.getRecipeCursor(false);
-//        Log.d("g53mdp", "RecipeListActivity cursor: " + c.toString());
-//
-//        simpleCursorAdapter = new SimpleCursorAdapter(this, R.layout.row_recipe, c, columns, to, 0);
-//        recipeListView.setAdapter(simpleCursorAdapter);
-//
-//        updateRatingColumnLabel();
-//
-//        final Intent goToRecipeDetailsActivity = new Intent(this, RecipeDetailsActivity.class);
-//        recipeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                int id = Integer.parseInt(((TextView) view.findViewById(R.id._id)).getText().toString());
-//                Log.d("g53mdp","RecipeListActivity onItemClick ID: " + id);
-//
-//                goToRecipeDetailsActivity.putExtra("id", ""+id);
-//                startActivityForResult(goToRecipeDetailsActivity, REQUEST_CODE_RECIPE_DETAILS_ACTIVITY);
-//            }
-//        });
-//
-//        ratingColumnHeading.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                simpleCursorAdapter.swapCursor(dbHelper.getRecipeCursor(true));
-//                updateRatingColumnLabel();
-//            }
-//        });
-
     }
 
     public void queryRecipes(){
@@ -164,6 +124,8 @@ public class RecipeListActivity extends AppCompatActivity {
 //        }
 //        ratingColumnHeading.setText(text);
 //    }
+
+
 
     public void onAddRecipeButton(View v){
         Intent goToAddRecipeIntent = new Intent(this, AddRecipeActivity.class);

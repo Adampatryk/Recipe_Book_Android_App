@@ -96,15 +96,6 @@ public class DBHelper extends SQLiteOpenHelper {
 		return max_id;
 	}
 
-	public void updateRating(int id, int rating){
-		db = getWritableDatabase();
-
-		ContentValues cv = new ContentValues();
-		cv.put("rating", rating);
-
-		db.update("recipe", cv, "_id=?", new String[]{""+id});
-	}
-
 	public void addRecipe(String title, String rawIngredients, String instructions, int rating){
 		db = getWritableDatabase();
 

@@ -2,6 +2,7 @@ package com.example.recipebook;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -53,9 +54,8 @@ public class RecipeDetailsActivity extends AppCompatActivity {
         ArrayList<String> recordData = new ArrayList<>();
         ArrayList<String> ingredients = new ArrayList<>();
 
-        Uri uri = RecipeBookProviderContract.RECIPE_WITH_INGREDIENTS;
-        uri = uri.withAppendedPath(uri, "/"+id);
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        Cursor cursor = getContentResolver().query(RecipeBookProviderContract.RECIPE_WITH_INGREDIENTS,
+                null, RecipeBookProviderContract._ID + "=?", new String[]{""+id}, null);
 
         Log.d("g53mdp", "RecipeDetailsActivity queryRecipeWithIngredients c.getCount(): " + cursor.getCount());
 
@@ -64,6 +64,7 @@ public class RecipeDetailsActivity extends AppCompatActivity {
 			do
 			{
 				if (recordData.isEmpty()){
+				    //FUTURE? cursor.getColumnIndex()
 					recordData.add(cursor.getString(1)); // Title
 					recordData.add(cursor.getString(2)); // Instructions
 					recordData.add(cursor.getString(3)); // Rating
@@ -108,7 +109,10 @@ public class RecipeDetailsActivity extends AppCompatActivity {
 
         int newRating = Integer.parseInt(newRatingText);
 
-        dbHelper.updateRating(id, newRating);
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("rating", newRating);
+
+        getContentResolver().update(RecipeBookProviderContract.RECIPE_URI, contentValues, RecipeBookProviderContract._ID + "=?", new String[]{""+id});
 
         ratingTextView.setText("" + newRating);
         ratingTextView.setVisibility(View.VISIBLE);
