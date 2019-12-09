@@ -20,16 +20,16 @@ public class AddRecipeActivity extends AppCompatActivity {
     public void onAddButton(View v){
 
         //Collect title
-        String title = ((TextView) findViewById(R.id.recipeTitleText)).getText().toString();
+        String title = ((TextView) findViewById(R.id.recipeTitleText)).getText().toString().trim().toLowerCase();
 
         //Collect ingredients and parse
-        String rawIngredients = ((TextView) findViewById(R.id.ingredientsText)).getText().toString();
+        String rawIngredients = ((TextView) findViewById(R.id.ingredientsText)).getText().toString().trim().toLowerCase();
 
         //Collect instructions
-        String instructions = ((TextView) findViewById(R.id.instructionsText)).getText().toString();
+        String instructions = ((TextView) findViewById(R.id.instructionsText)).getText().toString().trim().toLowerCase();
 
         //Collect rating
-        int rating = Integer.parseInt(((TextView) findViewById(R.id.addRatingText)).getText().toString());
+        int rating = Integer.parseInt(((TextView) findViewById(R.id.addRatingText)).getText().toString().trim());
 
         //Error checking?
 

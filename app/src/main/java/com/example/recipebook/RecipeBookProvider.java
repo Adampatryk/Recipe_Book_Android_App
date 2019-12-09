@@ -20,8 +20,6 @@ public class RecipeBookProvider extends ContentProvider {
 
 	DBHelper dbHelper = null;
 
-	private int sortByRatingState = 0;
-	private String[] sortStates = new String[]{"title asc", "rating asc", "rating desc"};
 	private static final UriMatcher uriMatcher;
 
 	static {
@@ -50,10 +48,10 @@ public class RecipeBookProvider extends ContentProvider {
 			case 2:
 				return db.query(RecipeBookProviderContract.INGREDIENT_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
 			case 3:
-				return db.rawQuery("select r._id as recipe_id, r.title, r.instructions, r.rating, ri.ingredient_id, i.ingredient_name "+ //Change in future
+				return db.rawQuery("select r." + RecipeBookProviderContract._ID + " as " + RecipeBookProviderContract.RECIPE_ID + ", r." + RecipeBookProviderContract.TITLE + ", r." + RecipeBookProviderContract.INSTRUCTIONS + ", r." + RecipeBookProviderContract.RATING + ", ri." + RecipeBookProviderContract.INGREDIENT_ID + ", i." + RecipeBookProviderContract.INGREDIENT_NAME + " "+ //Change in future
                 		"from " + RecipeBookProviderContract.RECIPE_TABLE + " r "+
-                        "join " + RecipeBookProviderContract.RECIPE_INGREDIENTS_TABLE + " ri on (r._id = ri.recipe_id)"+
-                        "join " + RecipeBookProviderContract.INGREDIENT_TABLE + " i on (ri.ingredient_id = i._id) where r._id == ?",
+                        "join " + RecipeBookProviderContract.RECIPE_INGREDIENTS_TABLE + " ri on (r." + RecipeBookProviderContract._ID + " = ri." + RecipeBookProviderContract.RECIPE_ID + ")"+
+                        "join " + RecipeBookProviderContract.INGREDIENT_TABLE + " i on (ri." + RecipeBookProviderContract.INGREDIENT_ID + " = i." + RecipeBookProviderContract._ID + ") where r." + RecipeBookProviderContract._ID + " == ?",
 						selectionArgs);
 			default:
 				return null;
@@ -67,7 +65,6 @@ public class RecipeBookProvider extends ContentProvider {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 
 		db.update(RecipeBookProviderContract.RECIPE_TABLE, contentValues, s, strings);
-		getContext().getContentResolver().notifyChange(uri, null);
 
 		return 0;
 	}
@@ -78,15 +75,11 @@ public class RecipeBookProvider extends ContentProvider {
 		Log.d("g53mdp", "RecipeBookProvider insert");
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-		String title;
-		String instructions;
-		int rating;
 		String rawIngredients;
 
 		if (contentValues != null){
-			title = contentValues.getAsString(RecipeBookProviderContract.TITLE);
-			instructions = contentValues.getAsString(RecipeBookProviderContract.INSTRUCTIONS);
-			rating = (int) contentValues.get(RecipeBookProviderContract.RATING);
+			contentValues.put(RecipeBookProviderContract.TITLE, capitalise(contentValues.getAsString(RecipeBookProviderContract.TITLE)));
+			contentValues.put(RecipeBookProviderContract.INSTRUCTIONS, capitalise(contentValues.getAsString(RecipeBookProviderContract.INSTRUCTIONS)));
 			rawIngredients = contentValues.getAsString(RecipeBookProviderContract.INGREDIENTS_LIST);
 		} else {
 			return null;
@@ -94,50 +87,59 @@ public class RecipeBookProvider extends ContentProvider {
 
 
 		String[] recipeIngredients = rawIngredients.split("\\r?\\n");
+
+		//Capitalise each ingredient
+		for (int i = 0; i < recipeIngredients.length; i++){
+			recipeIngredients[i] = capitalise(recipeIngredients[i].trim().toLowerCase());
+		}
+
 		ArrayList<String[]> allIngredients = getAllIngredients();
 
-		int recipe_id = -1;
+		int recipe_id;
 
 		//Add recipe to recipe table
-		db.execSQL("INSERT INTO " + RecipeBookProviderContract.RECIPE_TABLE + " (title, instructions, rating)" +
-				"VALUES " +
-				"('" + title + "','" + instructions + "','" + rating + "');");
+		contentValues.remove(RecipeBookProviderContract.INGREDIENTS_LIST);
 
-		recipe_id = getMaxId("recipe");
+		db.insert(RecipeBookProviderContract.RECIPE_TABLE, null, contentValues);
+
+		recipe_id = getMaxId(RecipeBookProviderContract.RECIPE_TABLE);
 
 		//Add ingredient to ingredient table if it doesn't already exist
 
 		//For each ingredient in the new recipe
 		for (String recipeIngredient: recipeIngredients){
-			int ingredient_id = -1;
+			if (!recipeIngredient.isEmpty()){
+				int ingredient_id = -1;
 
-			//Ingredient set to not exist unless a match is found
-			boolean exists = false;
-			//For each ingredient in the database
-			for (String[] dbIngredient: allIngredients){
-				//If the name of the ingredient in the database is the same is the currentRecipeIngredient in outer for loop:
-				if (dbIngredient[1].equals(recipeIngredient)){
-					exists = true; //Set the ingredient to exist (as it is in the database)
-					ingredient_id = Integer.parseInt(dbIngredient[0]); //Set the id of the ingredient so i can use it in the association
-					break;//Stop looking through the database
+				//Ingredient set to not exist unless a match is found
+				boolean exists = false;
+				//For each ingredient in the database
+				for (String[] dbIngredient: allIngredients){
+					//If the name of the ingredient in the database is the same is the currentRecipeIngredient in outer for loop:
+					if (dbIngredient[1].equals(recipeIngredient)){
+						exists = true; //Set the ingredient to exist (as it is in the database)
+						ingredient_id = Integer.parseInt(dbIngredient[0]); //Set the id of the ingredient so i can use it in the association
+						break;//Stop looking through the database
+					}
 				}
-			}
-			//If ingredient doesn't exist, insert it into ingredient table
-			if (!exists){
-				db.execSQL("INSERT INTO ingredient (ingredient_name)" +
-						"VALUES " +
-						"('" + recipeIngredient + "');");
-				//Get the id of the ingredient that was just added so I can use it in the association
-				ingredient_id = getMaxId("ingredient");
-			}
+				//If ingredient doesn't exist, insert it into ingredient table
+				if (!exists){
+					ContentValues ingredientValues = new ContentValues();
+					ingredientValues.put(RecipeBookProviderContract.INGREDIENT_NAME, recipeIngredient);
+					db.insert(RecipeBookProviderContract.INGREDIENT_TABLE, null, ingredientValues);
 
-			//Add association
-			db.execSQL("INSERT INTO recipe_ingredient (recipe_id, ingredient_id)" +
-					"VALUES " +
-					"('" + recipe_id + "','" + ingredient_id  + "');");
+					//Get the id of the ingredient that was just added so I can use it in the association
+					ingredient_id = getMaxId(RecipeBookProviderContract.INGREDIENT_TABLE);
+				}
 
+				//Add association
+				ContentValues associationValues = new ContentValues();
+				associationValues.put(RecipeBookProviderContract.RECIPE_ID, recipe_id);
+				associationValues.put(RecipeBookProviderContract.INGREDIENT_ID, ingredient_id);
+
+				db.insert(RecipeBookProviderContract.RECIPE_INGREDIENTS_TABLE, null, associationValues);
+			}
 		}
-		getContext().getContentResolver().notifyChange(uri, null);
 
 		return null;
 	}
@@ -190,7 +192,6 @@ public class RecipeBookProvider extends ContentProvider {
 			}
 		}
 
-		getContext().getContentResolver().notifyChange(uri, null);
 
 		return 1;
 	}
@@ -210,9 +211,9 @@ public class RecipeBookProvider extends ContentProvider {
 	}
 
 	public ArrayList<String[]> getAllIngredients() {
-		ArrayList<String[]> ingredients = new ArrayList<String[]>();
+		ArrayList<String[]> ingredients = new ArrayList<>();
 
-		Cursor c = dbHelper.getWritableDatabase().query("ingredient", new String[]{"_id", "ingredient_name"},
+		Cursor c = dbHelper.getWritableDatabase().query(RecipeBookProviderContract.INGREDIENT_TABLE, new String[]{RecipeBookProviderContract._ID, RecipeBookProviderContract.INGREDIENT_NAME},
 				null, null, null, null, null);
 		if (c.moveToFirst()) {
 			do {
@@ -225,19 +226,20 @@ public class RecipeBookProvider extends ContentProvider {
 				);
 			} while (c.moveToNext());
 		}
+		c.close();
 
 		return ingredients;
 	}
 
 	public int getMaxId(String table){
-		ArrayList<String> tables = new ArrayList<>(Arrays.asList("recipe", "ingredient", "recipe_ingredient"));
+		ArrayList<String> tables = new ArrayList<>(Arrays.asList(RecipeBookProviderContract.RECIPE_TABLE, RecipeBookProviderContract.INGREDIENT_TABLE, RecipeBookProviderContract.RECIPE_INGREDIENTS_TABLE));
 
 		//Check if table exists
 		if (!tables.contains(table)){
 			return -1;
 		}
 
-		String query = "SELECT MAX(_id) AS max_id FROM " + table;
+		String query = "SELECT MAX(" + RecipeBookProviderContract._ID + ") AS max_id FROM " + table;
 		Cursor cursor = dbHelper.getWritableDatabase().rawQuery(query, null);
 
 		int max_id = 0;
@@ -251,5 +253,12 @@ public class RecipeBookProvider extends ContentProvider {
 
 		cursor.close();
 		return max_id;
+	}
+
+	public static String capitalise(String str) {
+		if(str == null || str.isEmpty()) {
+			return str;
+		}
+		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 }

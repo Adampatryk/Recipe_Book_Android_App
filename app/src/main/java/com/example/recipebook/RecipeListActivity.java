@@ -23,7 +23,8 @@ public class RecipeListActivity extends AppCompatActivity {
 
     SimpleCursorAdapter simpleCursorAdapter;
 
-    Handler h = new Handler();
+    private int ratingState = 0;
+    private String[] sortStates = new String[]{RecipeBookProviderContract.TITLE + " asc", RecipeBookProviderContract.RATING + " asc", RecipeBookProviderContract.RATING + " desc"};
 
     ListView recipeListView;
     TextView ratingColumnHeading;
@@ -34,36 +35,23 @@ public class RecipeListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_recipe_list);
         setUpViews();
 
-        getContentResolver().
-                registerContentObserver(
-                        RecipeBookProviderContract.ALL_URI,
-                        true,
-                        new ChangeObserver(h));
-
         queryRecipes();
-    }
-
-        class ChangeObserver extends ContentObserver {
-
-        public ChangeObserver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            this.onChange(selfChange, null);
-        }
-
-        @Override
-        public void onChange(boolean selfChange, Uri uri) {
-            queryRecipes();
-        }
     }
 
     public void setUpViews(){
 
         recipeListView = findViewById(R.id.recipeListView);
         ratingColumnHeading = findViewById(R.id.ratingColumnHeading);
+        ratingColumnHeading.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (++ratingState >= 3){
+                    ratingState = 0;
+                }
+                updateRatingColumnLabel();
+                queryRecipes();
+            }
+        });
 
         final Intent goToRecipeDetailsActivity = new Intent(this, RecipeDetailsActivity.class);
         recipeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -91,7 +79,9 @@ public class RecipeListActivity extends AppCompatActivity {
                 R.id.rowRecipeRatingText
         };
 
-        Cursor cursor = getContentResolver().query(RecipeBookProviderContract.RECIPE_URI, columns, null, null, null);
+        Cursor cursor = getContentResolver().query(RecipeBookProviderContract.RECIPE_URI, columns, null, null, sortStates[ratingState]);
+
+        updateRatingColumnLabel();
 
         simpleCursorAdapter = new SimpleCursorAdapter(
                 this,
@@ -104,19 +94,18 @@ public class RecipeListActivity extends AppCompatActivity {
         recipeListView.setAdapter(simpleCursorAdapter);
     }
 
-//    public void updateRatingColumnLabel(){
-//        String text = getString(R.string.label_rating);
-//        int sortByRatingState = dbHelper.getSortByRatingState();
-//        if(sortByRatingState == 0){
-//            text = "- " + text;
-//        }
-//        else if (sortByRatingState == 1){
-//            text = "ASC " + text;
-//        } else {
-//            text = "DESC " + text;
-//        }
-//        ratingColumnHeading.setText(text);
-//    }
+    public void updateRatingColumnLabel(){
+        String text = getString(R.string.label_rating);
+        if(ratingState == 0){
+            text = "- " + text;
+        }
+        else if (ratingState == 1){
+            text = "ASC " + text;
+        } else {
+            text = "DESC " + text;
+        }
+        ratingColumnHeading.setText(text);
+    }
 
 
 
@@ -129,8 +118,8 @@ public class RecipeListActivity extends AppCompatActivity {
         startActivityForResult(goToIngredientsIntent, REQUEST_CODE_INGREDIENTS_ACTIVITY);
     }
 
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-//        simpleCursorAdapter.swapCursor(dbHelper.getRecipeCursor(false));
-//    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        queryRecipes();
+    }
 
 }
