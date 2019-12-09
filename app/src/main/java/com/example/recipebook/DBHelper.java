@@ -189,46 +189,46 @@ public class DBHelper extends SQLiteOpenHelper {
 //        return new ArrayList<>(Arrays.asList(recordData, ingredients));
 //    }
 
-    public void deleteRecipe(int id){
-		db = getWritableDatabase();
-
-		//Delete recipe in recipe table
-		if (db.delete("recipe", "_id = ?", new String[]{"" + id}) == 0){
-			Log.d("g53mdp","DBHelper deleteRecipe id: " + id + "... nothing deleted");
-			return;
-		}
-
-		//Array for the ingredients ids in the recipe
-		ArrayList<Integer> recipeIngredientIds = new ArrayList<>();
-
-		//Find the ids of the ingredients for the recipe and populate the array above
-		Cursor c = db.query("recipe_ingredient", new String[]{"ingredient_id"}, "recipe_id = ?", new String[]{""+id}, null, null, null);
-		if (c.moveToFirst())
-		{
-			do
-			{
-				recipeIngredientIds.add(Integer.parseInt(c.getString(0)));
-			} while(c.moveToNext());
-		}
-		c.close();
-
-		Log.d("g53mdp", "DBHelper deleteRecipe ingredientIds: " + recipeIngredientIds.toString());
-
-		//Delete associations with ingredients in recipe_ingredient table
-		db.delete("recipe_ingredient", "recipe_id = ?", new String[]{""+id});
-
-		//Check if ingredient still exists in associations table, if not delete ingredient from ingredient table
-		for (int recipeIngredientId : recipeIngredientIds){
-			c = db.rawQuery("Select * from recipe_ingredient where ingredient_id = ?", new String[]{""+recipeIngredientId});
-
-			//If no recipes use the ingredient, delete it
-			if(c.getCount() <= 0){
-				db.delete("ingredient", "_id=?", new String[]{""+recipeIngredientId});
-				c.close();
-			}
-		}
-
-	}
+//    public void deleteRecipe(int id){
+//		db = getWritableDatabase();
+//
+//		//Delete recipe in recipe table
+//		if (db.delete("recipe", "_id = ?", new String[]{"" + id}) == 0){
+//			Log.d("g53mdp","DBHelper deleteRecipe id: " + id + "... nothing deleted");
+//			return;
+//		}
+//
+//		//Array for the ingredients ids in the recipe
+//		ArrayList<Integer> recipeIngredientIds = new ArrayList<>();
+//
+//		//Find the ids of the ingredients for the recipe and populate the array above
+//		Cursor c = db.query("recipe_ingredient", new String[]{"ingredient_id"}, "recipe_id = ?", new String[]{""+id}, null, null, null);
+//		if (c.moveToFirst())
+//		{
+//			do
+//			{
+//				recipeIngredientIds.add(Integer.parseInt(c.getString(0)));
+//			} while(c.moveToNext());
+//		}
+//		c.close();
+//
+//		Log.d("g53mdp", "DBHelper deleteRecipe ingredientIds: " + recipeIngredientIds.toString());
+//
+//		//Delete associations with ingredients in recipe_ingredient table
+//		db.delete("recipe_ingredient", "recipe_id = ?", new String[]{""+id});
+//
+//		//Check if ingredient still exists in associations table, if not delete ingredient from ingredient table
+//		for (int recipeIngredientId : recipeIngredientIds){
+//			c = db.rawQuery("Select * from recipe_ingredient where ingredient_id = ?", new String[]{""+recipeIngredientId});
+//
+//			//If no recipes use the ingredient, delete it
+//			if(c.getCount() <= 0){
+//				db.delete("ingredient", "_id=?", new String[]{""+recipeIngredientId});
+//				c.close();
+//			}
+//		}
+//
+//	}
 
 //	public Cursor getRecipeCursor(boolean sortByRatingChange){
 //

@@ -16,7 +16,6 @@ public class IngredientsListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        DBHelper dbHelper;
         Cursor c;
         SimpleCursorAdapter simpleCursorAdapter;
 
@@ -26,17 +25,16 @@ public class IngredientsListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ingredients_list);
         ingredientsListView = findViewById(R.id.ingredientsListView);
 
-        dbHelper = new DBHelper(this);
-
         String[] columns = new String[]{
-                "ingredient_name"
+                RecipeBookProviderContract.INGREDIENT_NAME,
+                RecipeBookProviderContract._ID
         };
 
         int[] to = new int[]{
                 R.id.rowIngredientText
         };
 
-        c = dbHelper.getIngredientsCursor();
+        c = getContentResolver().query(RecipeBookProviderContract.INGREDIENT_URI, columns, null, null, null);
         Log.d("g53mdp", "IngredientsListActivity cursor: " + c.toString());
 
         simpleCursorAdapter = new SimpleCursorAdapter(this, R.layout.row_ingredient, c, columns, to, 0);

@@ -132,7 +132,7 @@ public class RecipeDetailsActivity extends AppCompatActivity {
 
     public void onDeleteButton(View v){
 
-        dbHelper.deleteRecipe(id);
+        getContentResolver().delete(RecipeBookProviderContract.RECIPE_URI, RecipeBookProviderContract._ID + "=?", new String[]{""+id});
 
         setResult(1);
         finish();
