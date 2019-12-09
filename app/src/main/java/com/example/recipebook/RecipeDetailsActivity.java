@@ -2,11 +2,14 @@ package com.example.recipebook;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -42,12 +45,35 @@ public class RecipeDetailsActivity extends AppCompatActivity {
         ingredientsText = findViewById(R.id.ingredientsText);
         instructionsText = findViewById(R.id.instructionsText);
 
-        dbHelper = new DBHelper(this);
+        queryRecipeWithIngredients(id);
+    }
 
-        ArrayList<ArrayList<String>> recipe = dbHelper.getRecipe(id);
+    public void queryRecipeWithIngredients(int id){
 
-        ArrayList<String> data = recipe.get(0);
-        ArrayList<String> ingredients = recipe.get(1);
+        ArrayList<String> recordData = new ArrayList<>();
+        ArrayList<String> ingredients = new ArrayList<>();
+
+        Uri uri = RecipeBookProviderContract.RECIPE_WITH_INGREDIENTS;
+        uri = uri.withAppendedPath(uri, "/"+id);
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+
+        Log.d("g53mdp", "RecipeDetailsActivity queryRecipeWithIngredients c.getCount(): " + cursor.getCount());
+
+		if (cursor.moveToFirst())
+		{
+			do
+			{
+				if (recordData.isEmpty()){
+					recordData.add(cursor.getString(1)); // Title
+					recordData.add(cursor.getString(2)); // Instructions
+					recordData.add(cursor.getString(3)); // Rating
+				}
+				ingredients.add(cursor.getString(5));
+
+			} while(cursor.moveToNext());
+		}
+
+        cursor.close();
 
         String ingredientsTextBuffer = "";
 
@@ -55,16 +81,14 @@ public class RecipeDetailsActivity extends AppCompatActivity {
             ingredientsTextBuffer += ingredient + "\n";
         }
 
-        String title = data.get(0);
-        String instructions = data.get(1);
-        String rating = data.get(2);
+        String title = recordData.get(0);
+        String instructions = recordData.get(1);
+        String rating = recordData.get(2);
 
         recipeTitleText.setText(title);
         ingredientsText.setText(ingredientsTextBuffer);
         instructionsText.setText(instructions);
         ratingTextView.setText(rating);
-
-        Log.d("g53mdp", "RecipeDetailsActivity onCreate Recipe: " + recipe.toString());
     }
 
     public void onChangeRatingButton(View v){

@@ -13,8 +13,8 @@ import java.util.Arrays;
 public class DBHelper extends SQLiteOpenHelper {
 
 	SQLiteDatabase db;
-	private int sortByRatingState = 0;
-	private String[] sortStates = new String[]{"title asc", "rating asc", "rating desc"};
+//	private int sortByRatingState = 0;
+//	private String[] sortStates = new String[]{"title asc", "rating asc", "rating desc"};
 
 	public DBHelper(Context context) {
 		super(context, "recipes", null, 1);
@@ -43,9 +43,9 @@ public class DBHelper extends SQLiteOpenHelper {
 		Log.d("g53mdp", "DBHelper onCreate Created Tables");
 	}
 
-	public int getSortByRatingState(){
-		return sortByRatingState;
-	}
+//	public int getSortByRatingState(){
+//		return sortByRatingState;
+//	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
@@ -160,43 +160,43 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	}
 
-    public ArrayList<ArrayList<String>> getRecipe(int id){
-        ArrayList<String> recordData = new ArrayList<>();
-        ArrayList<String> ingredients = new ArrayList<>();
-
-        String [] recipeId = { "" + id };
-        Cursor c;
-        c = getWritableDatabase().rawQuery("select r._id as recipe_id, r.title, r.instructions, r.rating, ri.ingredient_id, i.ingredient_name "+
-                "from recipe r "+
-                        "join recipe_ingredient ri on (r._id = ri.recipe_id)"+
-                        "join ingredient i on (ri.ingredient_id = i._id) where r._id == ?",
-                recipeId);
-
-        Log.d("g53mdp", "DBHelper getRecipe c.getCount(): " + c.getCount());
-
-		if (c.moveToFirst())
-		{
-			do
-			{
-//				Log.d("g53mdp", "DBHelper r.name: " + c.getString(1));
-//				Log.d("g53mdp", "DBHelper r.instructions: " + c.getString(2));
-//				Log.d("g53mdp", "DBHelper r.rating: " + c.getString(3));
-//				Log.d("g53mdp", "DBHelper i.ingredientname: " + c.getString(5));
-
-				if (recordData.isEmpty()){
-					recordData.add(c.getString(1)); // Title
-					recordData.add(c.getString(2)); // Instructions
-					recordData.add(c.getString(3)); // Rating
-				}
-				ingredients.add(c.getString(5));
-
-			} while(c.moveToNext());
-		}
-
-		c.close();
-
-        return new ArrayList<>(Arrays.asList(recordData, ingredients));
-    }
+//    public ArrayList<ArrayList<String>> getRecipe(int id){
+//        ArrayList<String> recordData = new ArrayList<>();
+//        ArrayList<String> ingredients = new ArrayList<>();
+//
+//        String [] recipeId = { "" + id };
+//        Cursor c;
+//        c = getWritableDatabase().rawQuery("select r._id as recipe_id, r.title, r.instructions, r.rating, ri.ingredient_id, i.ingredient_name "+
+//                "from recipe r "+
+//                        "join recipe_ingredient ri on (r._id = ri.recipe_id)"+
+//                        "join ingredient i on (ri.ingredient_id = i._id) where r._id == ?",
+//                recipeId);
+//
+//        Log.d("g53mdp", "DBHelper getRecipe c.getCount(): " + c.getCount());
+//
+//		if (c.moveToFirst())
+//		{
+//			do
+//			{
+////				Log.d("g53mdp", "DBHelper r.name: " + c.getString(1));
+////				Log.d("g53mdp", "DBHelper r.instructions: " + c.getString(2));
+////				Log.d("g53mdp", "DBHelper r.rating: " + c.getString(3));
+////				Log.d("g53mdp", "DBHelper i.ingredientname: " + c.getString(5));
+//
+//				if (recordData.isEmpty()){
+//					recordData.add(c.getString(1)); // Title
+//					recordData.add(c.getString(2)); // Instructions
+//					recordData.add(c.getString(3)); // Rating
+//				}
+//				ingredients.add(c.getString(5));
+//
+//			} while(c.moveToNext());
+//		}
+//
+//		c.close();
+//
+//        return new ArrayList<>(Arrays.asList(recordData, ingredients));
+//    }
 
     public void deleteRecipe(int id){
 		db = getWritableDatabase();
@@ -239,17 +239,17 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	}
 
-	public Cursor getRecipeCursor(boolean sortByRatingChange){
-
-		if (sortByRatingChange){
-			if (++sortByRatingState == 3){
-				sortByRatingState = 0;
-			}
-		}
-
-		return getWritableDatabase().query("recipe", new String[] { "_id", "title", "instructions", "rating" },
-				null, null, null, null, sortStates[sortByRatingState]);
-	}
+//	public Cursor getRecipeCursor(boolean sortByRatingChange){
+//
+//		if (sortByRatingChange){
+//			if (++sortByRatingState == 3){
+//				sortByRatingState = 0;
+//			}
+//		}
+//
+//		return getWritableDatabase().query("recipe", new String[] { "_id", "title", "instructions", "rating" },
+//				null, null, null, null, sortStates[sortByRatingState]);
+//	}
 
 	public Cursor getIngredientsCursor(){
 		return getWritableDatabase().query("ingredient", new String[] {"_id", "ingredient_name"},
