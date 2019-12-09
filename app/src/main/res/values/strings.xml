@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Recipe Book</string>
+    <string name="recipe_list_title">Recipes</string>
+    <string name="ingredients_button">Ingredients</string>
+    <string name="ingredientsListTitle">Ingredients</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_back">Back</string>
+    <string name="label_recipe_instructions">Instructions</string>
+    <string name="button_add">Add</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="label_recipe_title">Recipe Title</string>
+    <string name="label_rating">Rating</string>
+    <string name="label_add_recipe">Add Recipe</string>
+    <string name="button_update_rating">Change Rating</string>
+    <string name="button_save_rating">Save</string>
+</resources>
