@@ -13,6 +13,8 @@ public class RecipeBookProviderContract {
 
 	public static final String _ID = "_id";
 
+	public static final String INGREDIENTS_LIST = "ingredients_list";
+
 	//TABLES
 	public static final String RECIPE_TABLE = "recipe";
 	public static final String INGREDIENT_TABLE = "ingredient";

@@ -28,7 +28,22 @@ public class RecipeListActivity extends AppCompatActivity {
     ListView recipeListView;
     TextView ratingColumnHeading;
 
-    class ChangeObserver extends ContentObserver {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_recipe_list);
+        setUpViews();
+
+        getContentResolver().
+                registerContentObserver(
+                        RecipeBookProviderContract.ALL_URI,
+                        true,
+                        new ChangeObserver(h));
+
+        queryRecipes();
+    }
+
+        class ChangeObserver extends ContentObserver {
 
         public ChangeObserver(Handler handler) {
             super(handler);
@@ -63,30 +78,8 @@ public class RecipeListActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recipe_list);
-        setUpViews();
-
-        getContentResolver().
-                registerContentObserver(
-                        RecipeBookProviderContract.ALL_URI,
-                        true,
-                        new ChangeObserver(h));
-
-        queryRecipes();
-
-    }
-
     public void queryRecipes(){
-        String[] projection = new String[] {
-                RecipeBookProviderContract._ID,
-                RecipeBookProviderContract.TITLE,
-                RecipeBookProviderContract.RATING
-        };
-
-        String colsToDisplay [] = new String[] {
+        String[] columns = new String[] {
                 RecipeBookProviderContract._ID,
                 RecipeBookProviderContract.TITLE,
                 RecipeBookProviderContract.RATING
@@ -98,13 +91,13 @@ public class RecipeListActivity extends AppCompatActivity {
                 R.id.rowRecipeRatingText
         };
 
-        Cursor cursor = getContentResolver().query(RecipeBookProviderContract.RECIPE_URI, projection, null, null, null);
+        Cursor cursor = getContentResolver().query(RecipeBookProviderContract.RECIPE_URI, columns, null, null, null);
 
         simpleCursorAdapter = new SimpleCursorAdapter(
                 this,
                 R.layout.row_recipe,
                 cursor,
-                colsToDisplay,
+                columns,
                 colResIds,
                 0);
 

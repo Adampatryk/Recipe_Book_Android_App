@@ -18,7 +18,6 @@ import java.util.ArrayList;
 public class RecipeDetailsActivity extends AppCompatActivity {
     int id;
 
-    DBHelper dbHelper;
     TextView recipeTitleText;
     TextView ingredientsText;
     TextView instructionsText;

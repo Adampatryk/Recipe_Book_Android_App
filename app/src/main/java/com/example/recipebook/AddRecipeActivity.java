@@ -2,6 +2,7 @@ package com.example.recipebook;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,14 +10,10 @@ import android.widget.TextView;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
-    DBHelper dbHelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_recipe);
-
-        dbHelper = new DBHelper(this);
     }
 
     //Add new recipe to the database
@@ -41,8 +38,15 @@ public class AddRecipeActivity extends AppCompatActivity {
         Log.d("g53mdp", "AddRecipeActivity onAddButton instructions: " + instructions);
         Log.d("g53mdp", "AddRecipeActivity onAddButton rating: " + rating);
 
-        // Add to database
-        dbHelper.addRecipe(title, rawIngredients, instructions, rating);
+        //Pack items into content values
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(RecipeBookProviderContract.TITLE, title);
+        contentValues.put(RecipeBookProviderContract.INSTRUCTIONS, instructions);
+        contentValues.put(RecipeBookProviderContract.RATING, rating);
+        contentValues.put(RecipeBookProviderContract.INGREDIENTS_LIST, rawIngredients);
+
+        // Use content provider
+        getContentResolver().insert(RecipeBookProviderContract.RECIPE_WITH_INGREDIENTS, contentValues);
 
         //Go back to recipe list
         finish();

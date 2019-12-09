@@ -52,194 +52,60 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	}
 
-	public ArrayList<String[]> getAllIngredients() {
-		ArrayList<String[]> ingredients = new ArrayList<String[]>();
 
-		Cursor c = getWritableDatabase().query("ingredient", new String[]{"_id", "ingredient_name"},
-				null, null, null, null, null);
-		if (c.moveToFirst()) {
-			do {
-				//Add ingredient_name to array
-				ingredients.add(
-						new String[]{
-								c.getString(0),
-								c.getString(1)
-						}
-				);
-			} while (c.moveToNext());
-		}
-
-		return ingredients;
-	}
-
-	public int getMaxId(String table){
-		ArrayList<String> tables = new ArrayList<>(Arrays.asList("recipe", "ingredient", "recipe_ingredient"));
-
-		//Check if table exists
-		if (!tables.contains(table)){
-			return -1;
-		}
-
-		String query = "SELECT MAX(_id) AS max_id FROM " + table;
-		Cursor cursor = db.rawQuery(query, null);
-
-		int max_id = 0;
-		if (cursor.moveToFirst())
-		{
-			do
-			{
-				max_id = cursor.getInt(0);
-			} while(cursor.moveToNext());
-		}
-
-		cursor.close();
-		return max_id;
-	}
-
-	public void addRecipe(String title, String rawIngredients, String instructions, int rating){
-		db = getWritableDatabase();
-
-		String[] recipeIngredients = rawIngredients.split("\\r?\\n");
-		ArrayList<String[]> allIngredients = getAllIngredients();
-		int recipe_id = -1;
-
-		Log.d("g53mdp", "DBHelper recipeIngredients: " + recipeIngredients.toString());
-		Log.d("g53mdp", "DBHelper allIngredients: " + allIngredients.toString());
-		Log.d("g53mdp", "DBHelper title: " + title);
-		Log.d("g53mdp", "DBHelper rawIngredients: " + rawIngredients);
-		Log.d("g53mdp", "DBHelper rating: " + rating);
-
-		//Add recipe to recipe table
-		db.execSQL("INSERT INTO recipe (title, instructions, rating)" +
-				"VALUES " +
-				"('" + title + "','" + instructions + "','" + rating + "');");
-
-		recipe_id = getMaxId("recipe");
-
-		//Add ingredient to ingredient table if it doesn't already exist
-
-		//For each ingredient in the new recipe
-		for (String recipeIngredient: recipeIngredients){
-			int ingredient_id = -1;
-
-			//Ingredient set to not exist unless a match is found
-			boolean exists = false;
-			//For each ingredient in the database
-			for (String[] dbIngredient: allIngredients){
-				//If the name of the ingredient in the database is the same is the currentRecipeIngredient in outer for loop:
-				if (dbIngredient[1].equals(recipeIngredient)){
-					exists = true; //Set the ingredient to exist (as it is in the database)
-					ingredient_id = Integer.parseInt(dbIngredient[0]); //Set the id of the ingredient so i can use it in the association
-					break;//Stop looking through the database
-				}
-			}
-			//If ingredient doesn't exist, insert it into ingredient table
-			if (!exists){
-				db.execSQL("INSERT INTO ingredient (ingredient_name)" +
-						"VALUES " +
-						"('" + recipeIngredient + "');");
-				//Get the id of the ingredient that was just added so I can use it in the association
-				ingredient_id = getMaxId("ingredient");
-			}
-
-			//Add association
-			db.execSQL("INSERT INTO recipe_ingredient (recipe_id, ingredient_id)" +
-					"VALUES " +
-					"('" + recipe_id + "','" + ingredient_id  + "');");
-
-		}
-
-	}
-
-//    public ArrayList<ArrayList<String>> getRecipe(int id){
-//        ArrayList<String> recordData = new ArrayList<>();
-//        ArrayList<String> ingredients = new ArrayList<>();
-//
-//        String [] recipeId = { "" + id };
-//        Cursor c;
-//        c = getWritableDatabase().rawQuery("select r._id as recipe_id, r.title, r.instructions, r.rating, ri.ingredient_id, i.ingredient_name "+
-//                "from recipe r "+
-//                        "join recipe_ingredient ri on (r._id = ri.recipe_id)"+
-//                        "join ingredient i on (ri.ingredient_id = i._id) where r._id == ?",
-//                recipeId);
-//
-//        Log.d("g53mdp", "DBHelper getRecipe c.getCount(): " + c.getCount());
-//
-//		if (c.moveToFirst())
-//		{
-//			do
-//			{
-////				Log.d("g53mdp", "DBHelper r.name: " + c.getString(1));
-////				Log.d("g53mdp", "DBHelper r.instructions: " + c.getString(2));
-////				Log.d("g53mdp", "DBHelper r.rating: " + c.getString(3));
-////				Log.d("g53mdp", "DBHelper i.ingredientname: " + c.getString(5));
-//
-//				if (recordData.isEmpty()){
-//					recordData.add(c.getString(1)); // Title
-//					recordData.add(c.getString(2)); // Instructions
-//					recordData.add(c.getString(3)); // Rating
-//				}
-//				ingredients.add(c.getString(5));
-//
-//			} while(c.moveToNext());
-//		}
-//
-//		c.close();
-//
-//        return new ArrayList<>(Arrays.asList(recordData, ingredients));
-//    }
-
-//    public void deleteRecipe(int id){
+//	public void addRecipe(String title, String rawIngredients, String instructions, int rating){
 //		db = getWritableDatabase();
 //
-//		//Delete recipe in recipe table
-//		if (db.delete("recipe", "_id = ?", new String[]{"" + id}) == 0){
-//			Log.d("g53mdp","DBHelper deleteRecipe id: " + id + "... nothing deleted");
-//			return;
-//		}
+//		String[] recipeIngredients = rawIngredients.split("\\r?\\n");
+//		ArrayList<String[]> allIngredients = getAllIngredients();
+//		int recipe_id = -1;
 //
-//		//Array for the ingredients ids in the recipe
-//		ArrayList<Integer> recipeIngredientIds = new ArrayList<>();
+//		Log.d("g53mdp", "DBHelper recipeIngredients: " + recipeIngredients.toString());
+//		Log.d("g53mdp", "DBHelper allIngredients: " + allIngredients.toString());
+//		Log.d("g53mdp", "DBHelper title: " + title);
+//		Log.d("g53mdp", "DBHelper rawIngredients: " + rawIngredients);
+//		Log.d("g53mdp", "DBHelper rating: " + rating);
 //
-//		//Find the ids of the ingredients for the recipe and populate the array above
-//		Cursor c = db.query("recipe_ingredient", new String[]{"ingredient_id"}, "recipe_id = ?", new String[]{""+id}, null, null, null);
-//		if (c.moveToFirst())
-//		{
-//			do
-//			{
-//				recipeIngredientIds.add(Integer.parseInt(c.getString(0)));
-//			} while(c.moveToNext());
-//		}
-//		c.close();
+//		//Add recipe to recipe table
+//		db.execSQL("INSERT INTO recipe (title, instructions, rating)" +
+//				"VALUES " +
+//				"('" + title + "','" + instructions + "','" + rating + "');");
 //
-//		Log.d("g53mdp", "DBHelper deleteRecipe ingredientIds: " + recipeIngredientIds.toString());
+//		recipe_id = getMaxId("recipe");
 //
-//		//Delete associations with ingredients in recipe_ingredient table
-//		db.delete("recipe_ingredient", "recipe_id = ?", new String[]{""+id});
+//		//Add ingredient to ingredient table if it doesn't already exist
 //
-//		//Check if ingredient still exists in associations table, if not delete ingredient from ingredient table
-//		for (int recipeIngredientId : recipeIngredientIds){
-//			c = db.rawQuery("Select * from recipe_ingredient where ingredient_id = ?", new String[]{""+recipeIngredientId});
+//		//For each ingredient in the new recipe
+//		for (String recipeIngredient: recipeIngredients){
+//			int ingredient_id = -1;
 //
-//			//If no recipes use the ingredient, delete it
-//			if(c.getCount() <= 0){
-//				db.delete("ingredient", "_id=?", new String[]{""+recipeIngredientId});
-//				c.close();
+//			//Ingredient set to not exist unless a match is found
+//			boolean exists = false;
+//			//For each ingredient in the database
+//			for (String[] dbIngredient: allIngredients){
+//				//If the name of the ingredient in the database is the same is the currentRecipeIngredient in outer for loop:
+//				if (dbIngredient[1].equals(recipeIngredient)){
+//					exists = true; //Set the ingredient to exist (as it is in the database)
+//					ingredient_id = Integer.parseInt(dbIngredient[0]); //Set the id of the ingredient so i can use it in the association
+//					break;//Stop looking through the database
+//				}
 //			}
-//		}
-//
-//	}
-
-//	public Cursor getRecipeCursor(boolean sortByRatingChange){
-//
-//		if (sortByRatingChange){
-//			if (++sortByRatingState == 3){
-//				sortByRatingState = 0;
+//			//If ingredient doesn't exist, insert it into ingredient table
+//			if (!exists){
+//				db.execSQL("INSERT INTO ingredient (ingredient_name)" +
+//						"VALUES " +
+//						"('" + recipeIngredient + "');");
+//				//Get the id of the ingredient that was just added so I can use it in the association
+//				ingredient_id = getMaxId("ingredient");
 //			}
+//
+//			//Add association
+//			db.execSQL("INSERT INTO recipe_ingredient (recipe_id, ingredient_id)" +
+//					"VALUES " +
+//					"('" + recipe_id + "','" + ingredient_id  + "');");
+//
 //		}
 //
-//		return getWritableDatabase().query("recipe", new String[] { "_id", "title", "instructions", "rating" },
-//				null, null, null, null, sortStates[sortByRatingState]);
 //	}
 
 	public Cursor getIngredientsCursor(){
